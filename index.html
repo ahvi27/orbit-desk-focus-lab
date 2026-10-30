@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101322">
+  <meta name="description"
+        content="Orbit Desk — your personal space for focused work and daily tasks.">
+  <title>Orbit Desk | Find Your Focus</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #101322;
+      --card: #1b2035;
+      --text: #f4f5ff;
+      --muted: #adb4cf;
+      --line: #343c58;
+      --accent: #b5a1ff;
+      --button-text: #17132b;
+      --green: #86e3b1;
+    }
+
+    body.light {
+      color-scheme: light;
+      --bg: #f3f1fa;
+      --card: #fff;
+      --text: #25213b;
+      --muted: #67617d;
+      --line: #ded9ed;
+      --accent: #7250d7;
+      --button-text: #fff;
+      --green: #26784b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, sans-serif;
+      transition: background .2s, color .2s;
+    }
+
+    button, input { font: inherit; }
+
+    button {
+      cursor: pointer;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 18px;
+      color: var(--text);
+      background: transparent;
+    }
+
+    button:hover { border-color: var(--accent); }
+
+    :focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 4px;
+    }
+
+    button.primary {
+      background: var(--accent);
+      color: var(--button-text);
+      border-color: var(--accent);
+      font-weight: 700;
+    }
+
+    .container { width: min(1040px, 92%); margin: auto; }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 28px 0;
+    }
+
+    .brand { font-weight: 800; font-size: 1.25rem; }
+    .brand span { color: var(--accent); }
+    .hero { padding: 35px 0; }
+    .eyebrow { color: var(--accent); letter-spacing: .15em; font-size: .8rem; }
+    h1 { font-size: clamp(2.4rem, 6vw, 4.2rem); letter-spacing: -.05em; margin: 12px 0; }
+    .muted, .hero p { color: var(--muted); line-height: 1.7; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 22px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 28px;
+    }
+
+    .card h2 { margin: 0 0 20px; font-size: 1.15rem; }
+
+    .modes, .controls {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .modes button { font-size: .85rem; padding: 10px 14px; }
+    .modes button[aria-pressed="true"] {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .timer {
+      display: grid;
+      place-items: center;
+      width: min(270px, 100%);
+      aspect-ratio: 1;
+      margin: 30px auto;
+      border: 8px solid var(--line);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+    }
+
+    #clock {
+      font-size: clamp(3rem, 8vw, 4rem);
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -.05em;
+    }
+
+    #timerStatus { text-align: center; min-height: 24px; }
+
+    form { display: flex; gap: 8px; }
+
+    input[type="text"] {
+      min-width: 0;
+      flex: 1;
+      background: var(--bg);
+      color: var(--text);
+      padding: 13px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
+
+    #tasks { list-style: none; padding: 0; margin: 20px 0; }
+
+    .task {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .task label {
+      flex: 1;
+      overflow-wrap: anywhere;
+      cursor: pointer;
+    }
+
+    .task input { accent-color: var(--accent); width: 18px; height: 18px; }
+    .task.done label { text-decoration: line-through; color: var(--muted); }
+    .delete { padding: 5px 10px; font-size: 1.2rem; }
+
+    progress { width: 100%; height: 12px; accent-color: var(--accent); }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin: 22px 0;
+    }
+
+    .stat { padding: 22px; }
+    .stat strong { display: block; font-size: 1.8rem; color: var(--green); }
+    .stat span { color: var(--muted); font-size: .85rem; }
+
+    footer { padding: 25px 0 40px; text-align: center; color: var(--muted); }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+
+    @media (max-width: 700px) {
+      .grid { grid-template-columns: 1fr; }
+      .card { padding: 22px; }
+      .stats { gap: 8px; }
+      .stat { padding: 16px 10px; text-align: center; }
+      header button { padding: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand"><span>◉</span> ORBIT DESK</div>
+      <button id="theme" type="button">Switch theme</button>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="eyebrow">SMALL STEPS. STEADY MOMENTUM.</div>
+        <h1>Make space for<br>your best work.</h1>
+        <p>Your next big idea starts with one focused session.</p>
+      </section>
+
+      <div class="grid">
+        <section class="card" aria-labelledby="focusHeading">
+          <h2 id="focusHeading">Your focus orbit</h2>
+
+          <div class="modes" aria-label="Timer mode">
+            <button data-mode="focus" aria-pressed="true">Focus · 25m</button>
+            <button data-mode="short" aria-pressed="false">Short break · 5m</button>
+            <button data-mode="long" aria-pressed="false">Long break · 15m</button>
+          </div>
+
+          <div class="timer">
+            <div id="clock" role="timer" aria-label="Time remaining">25:00</div>
+          </div>
+
+          <div class="controls">
+            <button class="primary" id="start">Start session</button>
+            <button id="reset">Reset</button>
+          </div>
+
+          <p id="timerStatus" class="muted" role="status">Ready when you are.</p>
+        </section>
+
+        <section class="card" aria-labelledby="tasksHeading">
+          <h2 id="tasksHeading">Today's mission</h2>
+
+          <form id="taskForm">
+            <label class="sr-only" for="taskInput">New task</label>
+            <input id="taskInput" type="text" maxlength="120"
+                   placeholder="What will you accomplish?" required>
+            <button class="primary" type="submit">Add</button>
+          </form>
+
+          <ul id="tasks"></ul>
+          <p id="empty" class="muted">A clear desk. Add your first mission.</p>
+          <p id="taskSummary" class="muted" aria-live="polite"></p>
+          <label class="sr-only" for="progress">Task completion</label>
+          <progress id="progress" max="100" value="0"></progress>
+        </section>
+      </div>
+
+      <section class="stats" aria-label="Daily statistics">
+        <div class="card stat">
+          <strong id="sessions">0</strong>
+          <span>Focus sessions today</span>
+        </div>
+        <div class="card stat">
+          <strong id="minutes">0</strong>
+          <span>Focus minutes today</span>
+        </div>
+        <div class="card stat">
+          <strong id="completed">0</strong>
+          <span>Tasks completed today</span>
+        </div>
+      </section>
+    </main>
+
+    <footer>One task. One session. One step closer.</footer>
+  </div>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const STORAGE_KEY = "orbit-desk-v1";
+    const durations = { focus: 25 * 60, short: 5 * 60, long: 15 * 60 };
+
+    function localDate() {
+      const date = new Date();
+      return [
+        date.getFullYear(),
+        String(date.getMonth() + 1).padStart(2, "0"),
+        String(date.getDate()).padStart(2, "0")
+      ].join("-");
+    }
+
+    function load() {
+      try {
+        const data = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        return data && typeof data === "object" ? data : {};
+      } catch {
+        return {};
+      }
+    }
+
+    const stored = load();
+    const state = {
+      theme: stored.theme === "light" ? "light" : "dark",
+      tasks: Array.isArray(stored.tasks)
+        ? stored.tasks.filter(task =>
+            task && typeof task.id === "string" &&
+            typeof task.text === "string" &&
+            typeof task.done === "boolean")
+        : [],
+      day: typeof stored.day === "string" ? stored.day : localDate(),
+      sessions: Number.isSafeInteger(stored.sessions) && stored.sessions >= 0
+        ? stored.sessions : 0
+    };
+
+    let mode = "focus";
+    let remaining = durations[mode];
+    let running = false;
+    let deadline = 0;
+
+    function save() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch {
+        $("timerStatus").textContent =
+          "Browser storage is unavailable. Changes last for this visit only.";
+      }
+    }
+
+    function checkDay() {
+      const today = localDate();
+      if (state.day !== today) {
+        state.day = today;
+        state.sessions = 0;
+        save();
+      }
+    }
+
+    function renderStats() {
+      const today = localDate();
+      $("sessions").textContent = state.sessions;
+      $("minutes").textContent = state.sessions * 25;
+      $("completed").textContent = state.tasks.filter(
+        task => task.done && task.completedOn === today
+      ).length;
+    }
+
+    function renderTasks() {
+      $("tasks").replaceChildren();
+
+      state.tasks.forEach(task => {
+        const item = document.createElement("li");
+        item.className = "task" + (task.done ? " done" : "");
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.id = "task-" + task.id;
+        checkbox.checked = task.done;
+
+        const label = document.createElement("label");
+        label.htmlFor = checkbox.id;
+        label.textContent = task.text;
+
+        checkbox.addEventListener("change", () => {
+          checkDay();
+          task.done = checkbox.checked;
+          task.completedOn = task.done ? localDate() : null;
+          save();
+          renderTasks();
+        });
+
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "delete";
+        remove.textContent = "×";
+        remove.setAttribute("aria-label", "Delete task: " + task.text);
+        remove.addEventListener("click", () => {
+          state.tasks = state.tasks.filter(entry => entry.id !== task.id);
+          save();
+          renderTasks();
+        });
+
+        item.append(checkbox, label, remove);
+        $("tasks").append(item);
+      });
+
+      const done = state.tasks.filter(task => task.done).length;
+      $("empty").hidden = state.tasks.length > 0;
+      $("taskSummary").textContent =
+        `${done} of ${state.tasks.length} tasks complete`;
+      $("progress").value = state.tasks.length
+        ? Math.round(done / state.tasks.length * 100)
+        : 0;
+
+      renderStats();
+    }
+
+    function renderTimer() {
+      const minutes = String(Math.floor(remaining / 60)).padStart(2, "0");
+      const seconds = String(remaining % 60).padStart(2, "0");
+      $("clock").textContent = `${minutes}:${seconds}`;
+      document.title = `${minutes}:${seconds} | Orbit Desk`;
+      $("start").textContent = running
+        ? "Pause"
+        : remaining === durations[mode] ? "Start session" : "Resume";
+    }
+
+    function tick() {
+      checkDay();
+      if (running) {
+        remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+
+        if (remaining === 0) {
+          running = false;
+          if (mode === "focus") {
+            state.sessions++;
+            save();
+          }
+          $("timerStatus").textContent = mode === "focus"
+            ? "Session complete! Take a well-earned break."
+            : "Break complete! Ready for your next mission?";
+        }
+      }
+      renderTimer();
+      renderStats();
+    }
+
+    $("start").addEventListener("click", () => {
+      if (running) {
+        tick();
+        if (!running) return;
+        running = false;
+        $("timerStatus").textContent = "Paused. Pick up when you're ready.";
+      } else {
+        if (remaining === 0) remaining = durations[mode];
+        deadline = Date.now() + remaining * 1000;
+        running = true;
+        $("timerStatus").textContent =
+          mode === "focus" ? "Keep going. You've got this." : "Time to recharge.";
+      }
+      renderTimer();
+    });
+
+    function resetTimer() {
+      running = false;
+      remaining = durations[mode];
+      $("timerStatus").textContent = "Ready when you are.";
+      renderTimer();
+    }
+
+    $("reset").addEventListener("click", resetTimer);
+
+    document.querySelectorAll("[data-mode]").forEach(button => {
+      button.addEventListener("click", () => {
+        mode = button.dataset.mode;
+        document.querySelectorAll("[data-mode]").forEach(option => {
+          option.setAttribute("aria-pressed", String(option === button));
+        });
+        resetTimer();
+      });
+    });
+
+    $("taskForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const text = $("taskInput").value.trim();
+      if (!text) return;
+
+      state.tasks.push({
+        id: globalThis.crypto?.randomUUID?.() ??
+          Date.now().toString(36) + Math.random().toString(36).slice(2),
+        text,
+        done: false,
+        completedOn: null
+      });
+
+      save();
+      renderTasks();
+      $("taskInput").value = "";
+      $("taskInput").focus();
+    });
+
+    $("theme").addEventListener("click", () => {
+      state.theme = state.theme === "dark" ? "light" : "dark";
+      document.body.classList.toggle("light", state.theme === "light");
+      save();
+    });
+
+    document.body.classList.toggle("light", state.theme === "light");
+    document.addEventListener("visibilitychange", tick);
+    checkDay();
+    renderTasks();
+    renderTimer();
+    setInterval(tick, 250);
+  </script>
+</body>
+</html>
